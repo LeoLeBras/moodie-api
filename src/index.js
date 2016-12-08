@@ -1,12 +1,18 @@
 /* @flow */
+/* eslint no-console: 0 */
 
 import koa from 'koa'
 import http from 'http'
+import { run } from '@helpers/socket'
 
 // Initialyze koa server
 const app = koa()
 const server = http.createServer(app.callback())
 const port = process.env.PORT || 3000
+
+// Logs
+console.log(`Start koa server 📣`)
+console.log(`listening on ${port} 😎 💪`)
 
 // Return "Hello World" for all GET methods
 app.use(function* run() {
@@ -14,14 +20,15 @@ app.use(function* run() {
 })
 
 // Initialyze socket.io
-const io = require('socket.io')(server)
+const socket = require('socket.io')(server)
 
-// Listen web sockets
-io.on('connection', (socket) => {
-  socket.on('test', (message) => {
-    console.log(message)
+// Run sockets
+run(({ watch, dispatch }) => {
+  dispatch('hello')
+  watch(() => {
+    // ...
   })
-})
+})(socket, { debug: true, server: true })
 
 // Listen events
-server.listen(port, () => console.log(`listening on ${port} 😎 💪`))
+server.listen(port)
