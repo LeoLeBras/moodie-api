@@ -12,7 +12,7 @@ const port = process.env.PORT || 3000
 
 // Logs
 console.log(`Start koa server 📣`)
-console.log(`listening on ${port} 😎 💪`)
+console.log(`Listening on ${port} 😎 💪`)
 
 // Return "Hello World" for all GET methods
 app.use(function* run() {

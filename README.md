@@ -19,7 +19,6 @@ $ git clone https://github.com/LeoLeBras/moodie-api.git
 $ cd moodie-api
 $ yarn                          # Install Node.js components listed in ./package.json
 ```
-Think to install gulp in global on your desktop : `yarn global add gulp`, if this has not been done before.
 
 ### Getting started
 ```shell
