@@ -5,7 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon index.js --exec babel-node"
+    "start": "nodemon src/index.js --exec babel-node"
   },
   "bugs": {
     "url": "https://github.com/LeoLeBras/moodie-api/issues"
