@@ -5,6 +5,8 @@
 [libs]
 
 [options]
+module.name_mapper='^@helpers\/\(.*\)$' -> '<PROJECT_ROOT>/src/helpers/\1'
+module.name_mapper='^@helpers$' -> '<PROJECT_ROOT>/src/helpers'
 
 [version]
 ^0.36.0
