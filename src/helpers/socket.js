@@ -18,7 +18,7 @@ const DISPATCH = '@@socket/DISPATCH'
 export const watch = (callback: Function): Function => {
   return (socket, options: Options): void => {
     socket.on(DISPATCH, (action: Action) => {
-      if (options.debug) console.log('👉 ', action)
+      if (options.debug) console.log('[socket] 👉 ', action)
       callback(action)
     })
   }
@@ -28,7 +28,7 @@ export const watch = (callback: Function): Function => {
 export const dispatch = (...actions: Array<Action>): Function => {
   return (socket, options: Options): void => {
     actions.forEach((action) => {
-      if (options.debug) console.log('👈 ', action)
+      if (options.debug) console.log('[socket] 👈 ', action)
       socket.emit(DISPATCH, action)
     })
   }
@@ -48,10 +48,10 @@ export const run = (worker: Function): Function => {
     })
     // Run for server
     if (options.server) {
-      if (options.debug) console.log('✋ ', 'init')
+      if (options.debug) console.log('[socket] ✋ ', 'init')
       return io.on('connection', (socket) => start(socket))
     }
-    // Run for browser
+    // Run for browser + mobile
     return start(io)
   }
 }

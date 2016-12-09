@@ -26,6 +26,7 @@
     "flow-bin": "^0.36.0",
     "koa": "^1.2.4",
     "koa-static": "^2.0.0",
+    "node-hue-api": "^2.3.0",
     "nodemon": "^1.11.0",
     "socket.io": "^1.7.1"
   }
