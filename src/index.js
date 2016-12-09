@@ -33,7 +33,7 @@ runSocket(({ watch, dispatch }) => {
 })(socket, { debug: true, server: true })
 
 // Find Hue bridge
-runHue({ debug: true, username: config.auth.username })
+runHue({ debug: true, username: config.bridge.username, lights: config.bridge.lights })
 
 // Listen events
 server.listen(port)
