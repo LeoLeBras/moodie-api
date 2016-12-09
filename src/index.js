@@ -5,6 +5,7 @@ import koa from 'koa'
 import http from 'http'
 import { run as runSocket } from '@helpers/socket'
 import { run as runHue } from '@helpers/hue'
+import config from './config'
 
 // Initialyze koa server
 const app = koa()
@@ -32,7 +33,7 @@ runSocket(({ watch, dispatch }) => {
 })(socket, { debug: true, server: true })
 
 // Find Hue bridge
-runHue({ debug: true })
+runHue({ debug: true, username: config.auth.username })
 
 // Listen events
 server.listen(port)
