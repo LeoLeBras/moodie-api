@@ -1,5 +1,4 @@
 /* @flow */
-/* eslint no-console: 0 */
 
 import koa from 'koa'
 import http from 'http'

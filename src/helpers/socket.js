@@ -1,5 +1,4 @@
 /* @flow */
-/* eslint no-console: 0 */
 
 export type Action = {
   type: string,

@@ -1,6 +1,4 @@
 /* @flow */
-/* eslint no-console: 0 */
-
 
 import hue from 'node-hue-api'
 
