@@ -1,12 +1,14 @@
 /* @flow */
 
+import Logger from '@helpers/logger'
+
 export type Action = {
   type: string,
   payload: Object,
 }
 
 export type Options = {
-  debug?: boolean,
+  logger: Logger,
   reactNative?: boolean,
   server?: boolean,
 }
@@ -15,42 +17,43 @@ const DISPATCH = '@@socket/DISPATCH'
 
 // Watch events
 export const watch = (callback: Function): Function => {
+  // Return a watcher using callback
   return (socket, options: Options): void => {
     socket.on(DISPATCH, (action: Action) => {
-      if (options.debug) console.log('[socket] 👉 ', action)
+      options.logger.log(3, '👉 ', action)
       callback(action)
     })
   }
 }
 
 // Dispatch an event
-export const dispatch = (...actions: Array<Action>): Function => {
+export const dispatch = (actions: Array<Action>): Function => {
+  // Return a dispatcher that iterate over actions
   return (socket, options: Options): void => {
     actions.forEach((action) => {
-      if (options.debug) console.log('[socket] 👈 ', action)
+      options.logger.log(3, '👈 ', action)
       socket.emit(DISPATCH, action)
     })
   }
 }
 
 // Wrap socket.io
-export const run = (worker: Function): Function => {
+export default (worker: Function): Function => {
   return (io, options: Options): void => {
     // Return watch and dispatch helpers
-    const start = (socket) => worker({
-      watch: (callback) => {
-        return watch(callback)(socket, options)
-      },
-      dispatch: (callback) => {
-        return dispatch(callback)(socket, options)
-      },
+    const start = socket => worker({
+      watch: callback => watch(callback)(socket, options),
+      dispatch: (...actions) => dispatch(actions)(socket, options),
     })
-    // Run for server
+    // Run server-side
     if (options.server) {
-      if (options.debug) console.log('[socket] ✋ ', 'init')
-      return io.on('connection', (socket) => start(socket))
+      options.logger.info('✋ ', 'init')
+      return io.on('connection', (socket) => {
+        options.logger.info('👌 ', 'new connection')
+        start(socket)
+      })
     }
-    // Run for browser + mobile
+    // Run client-side
     return start(io)
   }
 }

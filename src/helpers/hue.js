@@ -1,9 +1,10 @@
 /* @flow */
 
 import hue from 'node-hue-api'
+import Logger from '@helpers/logger'
 
-type Options = {
-  debug: boolean,
+export type Options = {
+  logger: Logger,
   username: string,
   lights?: Array<number>,
 }
@@ -11,17 +12,18 @@ type Options = {
 const HueApi = hue.HueApi
 const lightState = hue.lightState
 
-export const run = async (options: Options): Promise<void> => {
+export default async (addHandler: Function, options: Options): Promise<void> => {
+  const logger = options.logger
   try {
     // Begin by searching for bridges
-    if (options.debug) console.log('Search Hue bridge ... 🔥')
+    logger.info('Searching bridges ... 🔥')
     const bridges = await hue.nupnpSearch()
 
     // Search ended
     if (bridges.length > 0) {
-      if (options.debug) console.log('Bridges found: ', bridges)
+      logger.info('Bridges found:', JSON.stringify(bridges))
 
-      // Use the first one
+      // Use the first bridge
       const bridge = bridges[0]
 
       // Make API and light state
@@ -34,40 +36,36 @@ export const run = async (options: Options): Promise<void> => {
         ? options.lights.filter(id => bridgeLights.includes(id))
         : bridgeLights
 
-      // Random int from range 0 - 255
-      const rand = () => Math.floor((Math.random() * 255))
+      // Add handler to send new colors
+      addHandler('philips-hue', (rgb, brightness) => {
+        logger.info(`Sending rgb: [${rgb}], brightness: ${brightness}`)
 
-      // And start the loop
-      const loop = setInterval(async () => {
-        // lights array is empty
-        if (lights.length === 0) {
-          clearInterval(loop)
-          console.error('lights is empty, stopping loop...')
-        }
-
-        // Define light state
-        state.on().rgb(rand(), rand(), rand()).brightness(1)
+        // Make lightstate
+        state.reset().on().rgb(rgb[0], rgb[1], rgb[2]).brightness(brightness)
 
         // Iterate over each light
         lights.forEach(async (id) => {
           try {
             // And apply new light state
             const result = await api.setLightState(id, state)
-            if (result !== true && options.debug) {
-              console.error('Cannot change light state', result)
+            if (result !== true) {
+              logger.warn(`Cannot change light state for #${id}:`, result)
             }
           } catch (e) {
             // Remove light on error
             const index = lights.indexOf(id)
             if (index !== -1) lights.splice(index, 1)
-            if (options.debug) console.warn(`Removed light #${id}, due to ${e.message}`)
+            logger.warn(`Removed light #${id}, due to ${e.message}`)
           }
         })
-      }, 2000)
+
+        // Return true while there are lights
+        return lights.length > 0
+      })
     } else if (options.debug) {
-      console.error('No bridges found')
+      logger.error('No bridges found!')
     }
   } catch (error) {
-    if (options.debug) console.error(error)
+    logger.error('Exception thrown:', error)
   }
 }
