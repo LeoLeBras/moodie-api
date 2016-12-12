@@ -5,8 +5,6 @@ import Logger from '@helpers/logger'
 import type { Action } from '@helpers/socket'
 
 const hooks = {}
-const handlers = []
-const logger = new Logger('manager')
 
 glob('src/hooks/*.js', (err, files) => {
   files.forEach((file) => {
@@ -15,27 +13,44 @@ glob('src/hooks/*.js', (err, files) => {
   })
 })
 
-const manager = {
-  receive: (packet: Action) => {
+export default class Manager {
+
+  constructor(brightness) {
+    this.handlers = []
+    this.logger = new Logger('manager')
+    this.brightness = brightness || 100
+  }
+
+  setBrightness(brightness) {
+    this.brightness = brightness
+  }
+
+  receive(packet: Action) {
     const type = packet.type.split('/')
     const name = type[0].replace('@@', '')
     const hook = hooks[name]
     if (hook) {
       const moodState = hook.make(packet)
       if (moodState) {
-        logger.info(`Received packet ${packet.type}!`)
+        this.logger.info(`Received packet ${packet.type}!`)
         const color = moodState.getData().mood.getColor()
-        const brightness = moodState.getData().mood.getBrightness()
-        manager.send(color, brightness)
+        this.send(color, this.brightness)
       } else {
-        logger.warn(`Packet ${packet.type} discarded`)
+        this.logger.warn(`Packet ${packet.type} discarded`)
       }
     } else {
-      logger.warn(`Packet ${packet.type} not found`)
+      this.logger.warn(`Packet ${packet.type} not found`)
     }
-  },
-  send: (color, brightness) => handlers.forEach(cb => cb(color, brightness)),
-  dispatcher: (name, handler) => handlers.push(handler),
-}
+  }
 
-export default manager
+  send(color, brightness) {
+    const newBrightness = typeof brightness === 'number' ? brightness : this.brightness
+    this.handlers.forEach(cb => cb(color, newBrightness))
+  }
+
+  dispatcher() {
+    return (name, handler) => {
+      this.handlers.push(handler)
+    }
+  }
+}

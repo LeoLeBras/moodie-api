@@ -10,11 +10,14 @@ import bridge from '@helpers/hue'
 import cli from '@helpers/cli'
 import Logger from '@helpers/logger'
 
-import manager from './manager'
+import Manager from './manager'
 import config from './config'
 
 // Logger: set global log level
 Logger.setGlobalLevel(config.loglevel)
+
+// Manager: Initialize
+const manager = new Manager(config.bridge.brightness)
 
 // Koa: initialize web server
 const app = koa()
@@ -37,7 +40,7 @@ messenger(({ watch, dispatch }) => {
 })(socket, { logger: new Logger('socket'), server: true })
 
 // Hue: find Hue bridge
-bridge(manager.dispatcher, {
+bridge(manager.dispatcher(), {
   logger: new Logger('hue'),
   username: config.bridge.username,
   lights: config.bridge.lights,

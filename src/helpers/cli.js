@@ -14,12 +14,17 @@ export default function (manager, config) {
 
     // Change logging level
     if (args[0] === 'log') {
-      const newLevel = args.length === 2 ? parseInt(args[1]) : config.logLevel
-      if (newLevel >= -1 && newLevel < 10) {
-        Logger.setGlobalLevel(newLevel)
-        cliLogger.info(`Logging level set to ${newLevel}`)
+      if (args.length === 1) {
+        Logger.setGlobalLevel(config.loglevel)
+        cliLogger.info(`Logging level set to default (${config.loglevel})`)
       } else {
-        cliLogger.error(`Incorrect number: ${args[1]}`)
+        const newLevel = args.length === 2 ? parseInt(args[1]) : config.logLevel
+        if (newLevel >= -1 && newLevel < 10) {
+          Logger.setGlobalLevel(newLevel)
+          cliLogger.info(`Logging level set to ${newLevel}`)
+        } else {
+          cliLogger.error(`Incorrect number: ${args[1]}`)
+        }
       }
       return
     }
@@ -42,6 +47,20 @@ export default function (manager, config) {
           manager.send(rgb, brightness)
         }
       }
+      return
+    }
+
+    // Brightness
+    if (['brightness', 'bright', 'b'].includes(args[0])) {
+      if (args.length >= 2) {
+        const brightness = parseInt(args[1])
+        if (!isNaN(brightness)) {
+          manager.setBrightness(brightness)
+          cliLogger.info(`Brightness set to ${brightness}`)
+          return
+        }
+      }
+      cliLogger.error('Incorrect or missing argument')
       return
     }
 
@@ -68,7 +87,7 @@ export default function (manager, config) {
 
     // Random
     if (args[0] === 'rand') {
-      const brightness = args.length >= 2 ? parseInt(args[1]) : 100
+      const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
       const rand = () => Math.floor(Math.random() * 255)
       manager.send([rand(), rand(), rand()], brightness)
       return
@@ -79,7 +98,7 @@ export default function (manager, config) {
       if (args.length >= 2) {
         const mood = Moods[args[1].toUpperCase()]
         if (mood) {
-          const brightness = args.length >= 3 ? parseInt(args[2]) : mood.getBrightness()
+          const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
           manager.send(mood.getColor(), brightness)
         } else {
           cliLogger.error(`Unknown mood: ${args[1].toUpperCase()}`)

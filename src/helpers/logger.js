@@ -5,6 +5,14 @@ let globalLogLevel = 0
 
 class Logger {
 
+  static setGlobalLevel(level) {
+    globalLogLevel = level
+  }
+
+  static getGlobalLevel() {
+    return globalLogLevel
+  }
+
   constructor(prefix, logLevel) {
     this.prefix = `[${prefix}]`
     this.logLevel = typeof logLevel === 'undefined'
@@ -50,10 +58,6 @@ class Logger {
     console.log.apply(this, [color(this.prefix)].concat(items))
   }
 }
-
-// Static methods
-Logger.setGlobalLevel = level => globalLogLevel = level
-Logger.getGlobalLevel = () => globalLogLevel
 
 // Global logger
 Logger.app = new Logger('app')

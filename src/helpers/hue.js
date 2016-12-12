@@ -37,8 +37,8 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
         : bridgeLights
 
       // Add handler to send new colors
-      addHandler('philips-hue', (rgb, brightness) => {
-        logger.info(`Sending rgb: [${rgb}], brightness: ${brightness}`)
+      addHandler('philips-hue', (rgb: Array<number>, brightness: number) => {
+        logger.info(`Sending rgb: ${JSON.stringify(rgb)}, brightness: ${brightness}`)
 
         // Make lightstate
         state.reset()
@@ -46,7 +46,7 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
         else state.off()
 
         // Iterate over each light
-        lights.forEach(async (id) => {
+        lights.forEach(async (id: number) => {
           try {
             // And apply new light state
             const result = await api.setLightState(id, state)
