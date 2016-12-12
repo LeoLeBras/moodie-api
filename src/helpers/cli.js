@@ -10,7 +10,7 @@ export default function (manager, config) {
     output: process.stdout,
     terminal: false,
   }).on('line', (cmd) => {
-    const args = cmd.split(' ')
+    const args = cmd.trim().split(' ')
 
     // Change logging level
     if (args[0] === 'log') {
@@ -66,6 +66,15 @@ export default function (manager, config) {
       return
     }
 
+    // Random
+    if (args[0] === 'rand') {
+      const brightness = args.length >= 2 ? parseInt(args[1]) : 100
+      const rand = () => Math.floor(Math.random() * 255)
+      manager.send([rand(), rand(), rand()], brightness)
+      return
+    }
+
+    // Select a mood color
     if (args[0] === 'mood') {
       if (args.length >= 2) {
         const mood = Moods[args[1].toUpperCase()]
