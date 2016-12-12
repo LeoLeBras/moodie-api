@@ -42,8 +42,12 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
 
         // Make lightstate
         state.reset()
-        if (brightness) state.on().rgb(rgb[0], rgb[1], rgb[2]).brightness(brightness)
-        else state.off()
+        if (brightness) {
+          state.on().brightness(brightness)
+          if (rgb) state.rgb(rgb[0], rgb[1], rgb[2])
+        } else {
+          state.off()
+        }
 
         // Iterate over each light
         lights.forEach(async (id: number) => {

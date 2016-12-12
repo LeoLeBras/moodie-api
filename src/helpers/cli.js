@@ -70,6 +70,7 @@ export default function (manager, config) {
         if (!isNaN(brightness)) {
           manager.setBrightness(brightness)
           cliLogger.info(`Brightness set to ${brightness}`)
+          manager.send(null, brightness)
           return
         }
       }
