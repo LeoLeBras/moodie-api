@@ -3,6 +3,8 @@ import readline from 'readline'
 import { Moods } from '@base/mood'
 import Logger from '@helpers/logger'
 
+let lastCommand = null
+
 export default function (manager, config) {
   const cliLogger = new Logger('cli', 9)
   readline.createInterface({
@@ -10,7 +12,18 @@ export default function (manager, config) {
     output: process.stdout,
     terminal: false,
   }).on('line', (cmd) => {
-    const args = cmd.trim().split(' ')
+    let text = cmd.trim()
+    if (text.length === 0) {
+      if (lastCommand) {
+        text = lastCommand
+      } else {
+        cliLogger.error('No last command to resend')
+        return
+      }
+    }
+
+    lastCommand = text
+    const args = text.split(' ')
 
     // Change logging level
     if (args[0] === 'log') {
@@ -36,7 +49,7 @@ export default function (manager, config) {
       } else {
         // Get values from args
         const rgb = [args[1], args[2], args[3]].map(x => parseInt(x))
-        const brightness = args.length === 5 ? parseInt(args[4]) : 100
+        const brightness = args.length === 5 ? parseInt(args[4]) : undefined
 
         // Test valid number
         if (rgb.concat(brightness).some(isNaN)) {
