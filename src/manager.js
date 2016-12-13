@@ -17,7 +17,18 @@ glob('src/hooks/*.js', (err, files) => {
 
 export default class Manager {
 
-  constructor(brightness) {
+  handlers: Array<Function>
+  states: Array<MoodState>
+  logger: Logger
+
+  brightness: number
+  currentColor: ?Array<number>
+  currentBrightness: ?number
+  defaultState: MoodState
+
+  task: ?number
+
+  constructor(brightness: ?number) {
     this.handlers = []
     this.states = []
     this.logger = new Logger('manager')
@@ -28,7 +39,7 @@ export default class Manager {
     this.defaultState = new MoodState(0, -1, new MoodColor('normal'))
   }
 
-  setBrightness(brightness) {
+  setBrightness(brightness: number) {
     this.brightness = brightness
   }
 
@@ -51,7 +62,7 @@ export default class Manager {
     }
   }
 
-  send(color, brightness) {
+  send(color: ?Array<number>, brightness: ?number) {
     let updateNeeded = false
 
     // Check if we need to change color
@@ -94,7 +105,7 @@ export default class Manager {
   }
 
   dispatcher() {
-    return (name, handler) => {
+    return (name: string, handler: Function) => {
       this.handlers.push(handler)
     }
   }
@@ -105,15 +116,19 @@ export default class Manager {
         let currentState = this.defaultState
         this.states.forEach((state) => {
           state.tick()
-          state.getPriority()
-          // ...
+          if (state.getPriority() > currentState.getPriority) {
+            currentState = state
+          }
         })
+        this.send(currentState.getMood().getColor())
       }, 1000)
     }
   }
 
   stop() {
-    clearInterval(this.task)
-    this.task = null
+    if (typeof this.task === 'number') {
+      clearInterval(this.task)
+      this.task = null
+    }
   }
 }

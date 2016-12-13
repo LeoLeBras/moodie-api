@@ -3,7 +3,7 @@
 import colors from 'colors/safe'
 import cp from 'child_process'
 
-export const makeCliColor = (r, g, b, cb) => {
+export const makeCliColor = (r: number, g: number, b: number, cb: ?Function) => {
   return new Promise((resolve) => {
     return cp.exec(`printf "|\x1b[48;2;${r};${g};${b}m   \x1b[0m|"`, (err, stdout) => {
       return resolve(stdout)
@@ -15,6 +15,11 @@ let globalLogLevel = 0
 
 class Logger {
 
+  static app: Logger
+
+  prefix: string
+  logLevel: mixed
+
   static setGlobalLevel(level) {
     globalLogLevel = level
   }
@@ -23,32 +28,32 @@ class Logger {
     return globalLogLevel
   }
 
-  constructor(prefix, logLevel) {
+  constructor(prefix: string, logLevel: ?number) {
     this.prefix = `[${prefix}]`
     this.logLevel = typeof logLevel === 'undefined'
       ? Logger.getGlobalLevel
       : logLevel
   }
 
-  error(...items) {
+  error(...items: any) {
     if (this.getLevel() >= 0) {
       this.colorlog(colors.red, items)
     }
   }
 
-  warn(...items) {
+  warn(...items: any) {
     if (this.getLevel() >= 1) {
       this.colorlog(colors.yellow, items)
     }
   }
 
-  info(...items) {
+  info(...items: any) {
     if (this.getLevel() >= 2) {
       this.colorlog(colors.blue, items)
     }
   }
 
-  log(level, ...items) {
+  log(level: number, ...items: any) {
     if (typeof level !== 'number') {
       throw new Error('level must be a number')
     }
@@ -61,10 +66,14 @@ class Logger {
     if (typeof this.logLevel === 'function') {
       return this.logLevel()
     }
-    return this.logLevel
+    if (typeof this.logLevel === 'number') {
+      return this.logLevel
+    }
+
+    throw new Error('Unknown type for logLevel')
   }
 
-  colorlog(color, items) {
+  colorlog(color: Function, items: any) {
     console.log.apply(this, [color(this.prefix)].concat(items))
   }
 }
