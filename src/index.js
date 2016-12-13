@@ -18,6 +18,7 @@ Logger.setGlobalLevel(config.loglevel)
 
 // Manager: Initialize
 const manager = new Manager(config.bridge.brightness)
+manager.start()
 
 // Koa: initialize web server
 const app = koa()

@@ -10,7 +10,7 @@ module.exports = {
       return new MoodState({
         priority: 300,
         duration: 5 * 60,
-        mood: packet.payload.analysis.joy > 50 ? Moods.JOY : Moods.SAD,
+        mood: packet.payload.analysis.joy > 30 ? Moods.JOY : Moods.SAD,
       })
     }
     return null

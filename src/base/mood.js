@@ -1,10 +1,32 @@
 
+export class MoodState {
+
+  constructor({ priority, duration, mood }) {
+    this.priority = priority
+    this.duration = duration
+    this.mood = mood
+  }
+
+  getPriority() {
+    return this.priority
+  }
+
+  getDuration() {
+    return this.duration
+  }
+
+  getMood() {
+    return this.mood
+  }
+
+}
+
 export class MoodColor {
 
   constructor(name, rgb, brightness) {
     this.name = name
     this.rgb = rgb
-    this.brightness = brightness || 100
+    this.brightness = brightness
   }
 
   getName() {
@@ -17,18 +39,6 @@ export class MoodColor {
 
   getBrightness() {
     return this.brightness
-  }
-
-}
-
-export class MoodState {
-
-  constructor({ priority, duration, mood }) {
-    this.data = { priority, duration, mood }
-  }
-
-  getData() {
-    return this.data
   }
 
 }

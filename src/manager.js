@@ -17,6 +17,7 @@ export default class Manager {
 
   constructor(brightness) {
     this.handlers = []
+    this.states = []
     this.logger = new Logger('manager')
     this.brightness = brightness || 100
   }
@@ -33,7 +34,8 @@ export default class Manager {
       const moodState = hook.make(packet)
       if (moodState) {
         this.logger.info(`Received packet ${packet.type}!`)
-        const color = moodState.getData().mood.getColor()
+        this.states.push(moodState)
+        const color = moodState.getMood().getColor()
         this.send(color, this.brightness)
       } else {
         this.logger.warn(`Packet ${packet.type} discarded`)
@@ -43,14 +45,27 @@ export default class Manager {
     }
   }
 
-  send(color, brightness) {
-    const newBrightness = typeof brightness === 'number' ? brightness : this.brightness
-    this.handlers.forEach(cb => cb(color, newBrightness))
+  send(color, brightnessOverride) {
+    const brightness = typeof brightnessOverride === 'number' ? brightnessOverride : this.brightness
+    this.handlers.forEach(cb => cb(color, brightness))
   }
 
   dispatcher() {
     return (name, handler) => {
       this.handlers.push(handler)
     }
+  }
+
+  start() {
+    if (!this.task) {
+      this.task = setInterval(() => {
+        // ...
+      }, 1000)
+    }
+  }
+
+  stop() {
+    clearInterval(this.task)
+    this.task = null
   }
 }
