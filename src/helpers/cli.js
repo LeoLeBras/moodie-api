@@ -1,7 +1,7 @@
 /* @flow */
 
 import readline from 'readline'
-import { Moods } from '@base/mood'
+import { Moods, MoodState, MoodColor } from '@base/mood'
 import Logger, { makeCliColor } from '@helpers/logger'
 import Manager from '@root/manager'
 
@@ -114,9 +114,10 @@ export default function (manager: Manager, config: Object) {
     // Random
     if (args[0] === 'rand') {
       cliLogger.info('Random color...')
-      const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
+      // const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
       const rand = () => Math.floor(Math.random() * 255)
-      manager.send([rand(), rand(), rand()], brightness)
+      const rgb = [rand(), rand(), rand()]
+      manager.addState(new MoodState(999, 30, new MoodColor('rand', rgb)))
       return
     }
 

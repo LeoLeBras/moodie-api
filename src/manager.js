@@ -4,7 +4,7 @@
 import glob from 'glob'
 import Logger, { makeCliColor } from '@helpers/logger'
 import type { Action } from '@helpers/socket'
-import { MoodState, MoodColor } from '@base/mood'
+import { Mood, MoodState, MoodColor } from '@base/mood'
 
 const hooks = {}
 
@@ -18,13 +18,13 @@ glob('src/hooks/*.js', (err, files) => {
 export default class Manager {
 
   handlers: Array<Function>
-  states: Array<MoodState>
+  states: Array<Mood>
   logger: Logger
 
   brightness: number
   currentColor: ?Array<number>
   currentBrightness: ?number
-  defaultState: MoodState
+  defaultState: Mood
 
   task: ?number
 
@@ -51,7 +51,7 @@ export default class Manager {
       const moodState = hook.make(packet)
       if (moodState) {
         this.logger.info(`Received packet ${packet.type}!`)
-        this.states.push(moodState)
+        this.addState(moodState)
         const color = moodState.getMood().getColor()
         this.send(color, this.brightness)
       } else {
@@ -60,6 +60,10 @@ export default class Manager {
     } else {
       this.logger.warn(`Packet ${packet.type} not found`)
     }
+  }
+
+  addState(state: MoodState) {
+    this.states.push(state)
   }
 
   send(color: ?Array<number>, brightness: ?number) {
