@@ -1,7 +1,12 @@
+/* @flow */
 
 export class MoodState {
 
-  constructor({ priority, duration, mood }) {
+  priority: number
+  duration: number
+  mood: MoodColor
+
+  constructor(priority: number, duration: number, mood: MoodColor) {
     this.priority = priority
     this.duration = duration
     this.mood = mood
@@ -23,22 +28,41 @@ export class MoodState {
 
 export class MoodColor {
 
-  constructor(name, rgb, brightness) {
-    this.name = name
-    this.rgb = rgb
-    this.brightness = brightness
+  name: string
+  rgb: Array<number>
+  intensity: number
+  rgbWithIntensity: Array<number>
+
+  constructor(name: ?string, rgb: ?Array<number>, intensity: ?number) {
+    this.name = name || 'Unknown'
+    this.rgb = rgb || [255, 255, 255]
+    this.intensity = intensity || 100
+
+    this.rgbWithIntensity = this.computeColor(this.intensity)
   }
 
   getName() {
     return this.name
   }
 
-  getColor() {
-    return this.rgb
+  getColor(intensity: ?number) {
+    if (typeof intensity === 'number') {
+      if (intensity >= 100) {
+        return this.rgb
+      }
+      return this.computeColor(intensity)
+    }
+
+    return this.rgbWithIntensity
   }
 
-  getBrightness() {
-    return this.brightness
+  getIntensity() {
+    return this.intensity
+  }
+
+  computeColor(intensity: number) {
+    const average = this.rgb.reduce((p, c) => p + c, 0) / 3
+    return this.rgb.map(x => x + ((average - x) * ((100 - intensity) / 100))).map(Math.round)
   }
 
 }

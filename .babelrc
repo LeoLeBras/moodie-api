@@ -5,6 +5,7 @@
     ["module-resolver", {
       "root": ["./"],
       "alias": {
+        "@root": "./src/",
         "@base": "./src/base",
         "@helpers": "./src/helpers",
         "@hooks": "./src/hooks",

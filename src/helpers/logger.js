@@ -1,5 +1,15 @@
+/* @flow */
 
 import colors from 'colors/safe'
+import cp from 'child_process'
+
+export const makeCliColor = (r, g, b, cb) => {
+  return new Promise((resolve) => {
+    return cp.exec(`printf "|\x1b[48;2;${r};${g};${b}m   \x1b[0m|"`, (err, stdout) => {
+      return resolve(stdout)
+    })
+  }).then(cb)
+}
 
 let globalLogLevel = 0
 

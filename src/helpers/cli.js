@@ -1,11 +1,13 @@
+/* @flow */
 
 import readline from 'readline'
 import { Moods } from '@base/mood'
-import Logger from '@helpers/logger'
+import Logger, { makeCliColor } from '@helpers/logger'
+import Manager from '@root/manager'
 
 let lastCommand = null
 
-export default function (manager, config) {
+export default function (manager: Manager, config: Object) {
   const cliLogger = new Logger('cli', 9)
   readline.createInterface({
     input: process.stdin,
@@ -78,6 +80,16 @@ export default function (manager, config) {
       return
     }
 
+    // Current color
+    if (['current', 'c'].includes(args[0])) {
+      const color = manager.currentColor
+      const brightness = manager.currentBrightness
+      makeCliColor(color[0], color[1], color[2], (format) => {
+        cliLogger.info(`Color: ${format}, brightness: ${brightness}%`)
+      })
+      return
+    }
+
     // Switch off the light
     if (args[0] === 'off') {
       cliLogger.info('Switching off...')
@@ -101,6 +113,7 @@ export default function (manager, config) {
 
     // Random
     if (args[0] === 'rand') {
+      cliLogger.info('Random color...')
       const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
       const rand = () => Math.floor(Math.random() * 255)
       manager.send([rand(), rand(), rand()], brightness)
@@ -113,12 +126,13 @@ export default function (manager, config) {
         const mood = Moods[args[1].toUpperCase()]
         if (mood) {
           const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
+          cliLogger.info(`Mood ${mood.getName()}...`)
           manager.send(mood.getColor(), brightness)
         } else {
           cliLogger.error(`Unknown mood: ${args[1].toUpperCase()}`)
         }
       } else {
-        cliLogger.error('Missing args (2 minimum')
+        cliLogger.error(`Select a mood in ${JSON.stringify(Object.keys(Moods))}`)
       }
       return
     }

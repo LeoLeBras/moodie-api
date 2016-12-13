@@ -1,8 +1,10 @@
+/* @flow */
 /* eslint global-require: 0, import/no-dynamic-require: 0 */
 
 import glob from 'glob'
-import Logger from '@helpers/logger'
+import Logger, { makeCliColor } from '@helpers/logger'
 import type { Action } from '@helpers/socket'
+import { MoodState, MoodColor } from '@base/mood'
 
 const hooks = {}
 
@@ -19,7 +21,11 @@ export default class Manager {
     this.handlers = []
     this.states = []
     this.logger = new Logger('manager')
+
     this.brightness = brightness || 100
+    this.currentColor = null
+    this.currentBrightness = null
+    this.defaultState = new MoodState(0, -1, new MoodColor('normal'))
   }
 
   setBrightness(brightness) {
@@ -45,9 +51,46 @@ export default class Manager {
     }
   }
 
-  send(color, brightnessOverride) {
-    const brightness = typeof brightnessOverride === 'number' ? brightnessOverride : this.brightness
-    this.handlers.forEach(cb => cb(color, brightness))
+  send(color, brightness) {
+    let updateNeeded = false
+
+    // Check if we need to change color
+    let newColor = color
+    if (newColor === this.currentColor) {
+      newColor = null
+    } else {
+      this.currentColor = newColor
+      updateNeeded = true
+    }
+
+    // Check if we need to update brightness
+    let newBrightness = typeof brightness === 'number' ? brightness : this.brightness
+    if (newBrightness === this.currentBrightness) {
+      newBrightness = null
+    } else {
+      this.currentBrightness = newBrightness
+      updateNeeded = true
+    }
+
+    if (updateNeeded) {
+      (async () => {
+        const sending = []
+
+        if (newColor) {
+          const format = await makeCliColor(newColor[0], newColor[1], newColor[2])
+          sending.push(`rgb: ${format}`)
+        }
+
+        if (newBrightness === 0) {
+          sending.push('brightness: OFF')
+        } else if (newBrightness) {
+          sending.push(`brightness: ${newBrightness}%`)
+        }
+
+        this.logger.info(`Sending ${sending.join(', ')}`)
+      })()
+      this.handlers.forEach(cb => cb(newColor, newBrightness))
+    }
   }
 
   dispatcher() {
@@ -59,7 +102,12 @@ export default class Manager {
   start() {
     if (!this.task) {
       this.task = setInterval(() => {
-        // ...
+        let currentState = this.defaultState
+        this.states.forEach((state) => {
+          state.tick()
+          state.getPriority()
+          // ...
+        })
       }, 1000)
     }
   }

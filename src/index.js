@@ -5,13 +5,13 @@ import koa from 'koa'
 import http from 'http'
 import io from 'socket.io'
 
+import Manager from '@root/manager'
+import config from '@root/config'
+
 import messenger from '@helpers/socket'
 import bridge from '@helpers/hue'
 import cli from '@helpers/cli'
 import Logger from '@helpers/logger'
-
-import Manager from './manager'
-import config from './config'
 
 // Logger: set global log level
 Logger.setGlobalLevel(config.loglevel)
