@@ -81,6 +81,20 @@ export default function (manager: Manager, config: Object) {
       return
     }
 
+    // Intensity
+    if (['intensity', 'i'].includes(args[0])) {
+      if (args.length >= 2) {
+        const intensity = parseInt(args[1])
+        if (!isNaN(intensity)) {
+          manager.setIntensity(intensity)
+          cliLogger.info(`Intensity set to ${intensity}`)
+          return
+        }
+      }
+      cliLogger.error('Incorrect or missing argument')
+      return
+    }
+
     // Current color
     if (['current', 'c'].includes(args[0])) {
       const color = manager.currentColor

@@ -8,7 +8,7 @@ import Logger from '@helpers/logger'
 const IP_URL = 'http://ip-api.com/json/'
 const WEATHER_URL = 'http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=651e10753244afccb45c140b1dac2ef1'
 
-module.exports = {
+export default {
   name: 'weather',
   start: async (manager: Manager, logger: Logger) => {
     try {
@@ -24,17 +24,17 @@ module.exports = {
         logger.info(`Conditions: ${conditions}, ${description}`)
 
         if (conditions >= 700) {
-          manager.receive({
+          manager.receive(null, {
             type: '@@weather/CLEAR',
             payload: { conditions },
           })
         } else if (conditions >= 300) {
-          manager.receive({
+          manager.receive(null, {
             type: '@@weather/RAIN',
             payload: { conditions },
           })
         } else {
-          manager.receive({
+          manager.receive(null, {
             type: '@@weather/STORM',
             payload: { conditions },
           })

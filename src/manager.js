@@ -18,24 +18,29 @@ glob('src/hooks/*.js', (err, files) => {
 export default class Manager {
 
   handlers: Array<Function>
+  connections: Array<Function>
   states: Map<string, MoodState>
   logger: Logger
 
   brightness: number
-  currentColor: ?Array<number>
-  currentBrightness: ?number
+  intensity: number
+  currentColor: Array<number>
+  currentBrightness: number
   defaultState: MoodState
 
-  task: ?number
+  task: ?number = null
 
-  constructor(brightness: ?number) {
+  constructor(brightness: ?number, intensity: ?number) {
     this.handlers = []
+    this.connections = []
     this.states = new Map()
     this.logger = new Logger('manager')
 
     this.brightness = brightness || 100
-    this.currentColor = null
-    this.currentBrightness = null
+    this.intensity = intensity || 100
+    this.currentColor = [255, 255, 255]
+    this.currentBrightness = this.brightness
+
     this.defaultState = new MoodState(0, -1, new MoodColor('normal'))
   }
 
@@ -44,21 +49,43 @@ export default class Manager {
     this.send(null, brightness)
   }
 
-  receive(packet: Action) {
-    const type = packet.type.split('/')
-    const name = type[0].replace('@@', '')
+  setIntensity(intensity: number) {
+    this.intensity = intensity
+    this.send(this.currentColor, null)
+  }
+
+  connect(dispatcher: Function) {
+    this.connections.push(dispatcher)
+    if (this.handlers.length) {
+      dispatcher({
+        type: '@@hue/BRIDGE_SEARCH_SUCCEEDED',
+        payload: {},
+      })
+    }
+  }
+
+  receive(dispatcher: Function, packet: Action) {
+    const type = packet.type
+    const payload = packet.payload
+    const name = type.split('/')[0].replace('@@', '')
+    const method = type.split('/')[1]
     const hook = hooks[name]
     if (hook) {
-      const action = hook.action(packet)
+      const action = hook.action ? hook.action(method, payload, this) : true
       if (action === true) {
-        const moodState = hook.make(packet)
-        if (moodState) {
-          this.logger.info(`Received packet ${packet.type}!`)
-          this.addState(name, moodState)
-          const color = moodState.getMood().getColor()
-          this.send(color, this.brightness)
-        } else {
-          this.logger.warn(`Made packet ${packet.type}, but nothing returned`)
+        if (hook.make) {
+          const moodState = hook.make(method, payload, this)
+          if (moodState) {
+            this.logger.info(`Received packet ${packet.type}!`)
+            this.addState(name, moodState)
+            const color = moodState.getMood().getColor()
+            this.send(color, this.brightness)
+          } else {
+            this.logger.warn(`Made packet ${packet.type}, but nothing returned`)
+          }
+        }
+        if (hook.respond && dispatcher) {
+          dispatcher(hook.respond(method, payload, this))
         }
       } else if (action === false) {
         this.logger.info(`Clearing packet ${name}`)
@@ -94,50 +121,57 @@ export default class Manager {
     this.states.delete(identifier)
   }
 
+  makeColor(rgb: Array<number>) {
+    const average = rgb.reduce((p, c) => p + c, 0) / 3
+    return rgb.map(x => x + ((average - x) * ((100 - this.intensity) / 100))).map(Math.round)
+  }
+
   send(color: ?Array<number>, brightness: ?number) {
+    const sendColor = color ? this.makeColor(color) : this.currentColor
+    const sendBrightness = typeof brightness === 'number' ? brightness : this.currentBrightness
+
     let updateNeeded = false
 
-    // Check if we need to change color
-    let newColor = color
-    if (!newColor || newColor === this.currentColor) {
-      newColor = null
-    } else {
-      this.currentColor = newColor
+    if (sendColor.join(',') !== this.currentColor.join(',')) {
+      this.currentColor = sendColor
       updateNeeded = true
     }
 
-    // Check if we need to update brightness
-    let newBrightness = typeof brightness === 'number' ? brightness : this.brightness
-    if (newBrightness === this.currentBrightness) {
-      newBrightness = null
-    } else {
-      this.currentBrightness = newBrightness
+    if (sendBrightness !== this.currentBrightness) {
+      this.currentBrightness = sendBrightness
       updateNeeded = true
     }
 
     if (updateNeeded) {
+      // Log color
       (async () => {
         const sending = []
 
-        if (newColor) {
-          const format = await makeCliColor(newColor[0], newColor[1], newColor[2])
-          sending.push(`rgb: ${format}`)
-        }
+        const format = await makeCliColor(sendColor[0], sendColor[1], sendColor[2])
+        sending.push(`rgb: ${format}`)
 
-        if (newBrightness === 0) {
+        if (sendBrightness === 0) {
           sending.push('brightness: OFF')
-        } else if (newBrightness) {
-          sending.push(`brightness: ${newBrightness}%`)
+        } else if (sendBrightness) {
+          sending.push(`brightness: ${sendBrightness}%`)
         }
 
         this.logger.info(`Sending ${sending.join(', ')}`)
       })()
-      this.handlers.forEach(cb => cb(newColor, newBrightness))
+
+      // Check if we have actually handlers
+      if (!this.handlers.length) {
+        this.logger.warn('No handler to send color to!')
+      }
+
+      // And send
+      this.handlers.forEach(cb => cb(sendColor, sendBrightness))
     }
   }
 
   dispatcher() {
     return (name: string, handler: Function) => {
+      this.logger.info(`Added handler: ${name}!`)
       this.handlers.push(handler)
     }
   }

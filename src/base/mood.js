@@ -5,17 +5,8 @@ class Mood {
     throw new Error('Abstract method')
   }
 
-  getColor(intensity: ?number) {
+  getColor() {
     throw new Error('Abstract method')
-  }
-
-  getIntensity() {
-    throw new Error('Abstract method')
-  }
-
-  computeColor(rgb: Array<number>, intensity: number) {
-    const average = rgb.reduce((p, c) => p + c, 0) / 3
-    return rgb.map(x => x + ((average - x) * ((100 - intensity) / 100))).map(Math.round)
   }
 }
 
@@ -23,32 +14,19 @@ export class MoodAmbient extends Mood {
 
   name: string
   rgb: Function
-  intensity: Function
 
-  constructor(name: ?string, rgb: Function, intensity: Function) {
+  constructor(name: ?string, rgb: Function) {
     super()
     this.name = name || 'Unknown'
     this.rgb = rgb
-    this.intensity = intensity
   }
 
   getName() {
     return this.name
   }
 
-  getColor(intensity: ?number) {
-    if (typeof intensity === 'number') {
-      if (intensity >= 100) {
-        return this.rgb()
-      }
-      return this.computeColor(this.rgb(), intensity)
-    }
-
-    return this.computeColor(this.rgb(), this.intensity())
-  }
-
-  getIntensity() {
-    return this.intensity()
+  getColor() {
+    return this.rgb()
   }
 
 }
@@ -57,44 +35,24 @@ export class MoodColor extends Mood {
 
   name: string
   rgb: Array<number>
-  intensity: number
-  rgbWithIntensity: Array<number>
 
-  constructor(name: ?string, rgb: ?Array<number>, intensity: ?number) {
+  constructor(name: ?string, rgb: ?Array<number>) {
     super()
     this.name = name || 'Unknown'
     this.rgb = rgb || [255, 255, 255]
-    this.intensity = intensity || 100
-
-    this.rgbWithIntensity = this.computeColor(this.rgb, this.intensity)
   }
 
   getName() {
     return this.name
   }
 
-  getColor(intensity: ?number) {
-    if (typeof intensity === 'number') {
-      if (intensity >= 100) {
-        return this.rgb
-      }
-      return this.computeColor(this.rgb, intensity)
-    }
-
-    return this.rgbWithIntensity
-  }
-
-  getIntensity() {
-    return this.intensity
+  getColor() {
+    return this.rgb
   }
 
 }
 
 export const Moods = {
-  // Colors
-  WHITE: new MoodColor('white', [255, 255, 255]),
-
-  // Emotions
   DYNAMIC: new MoodColor('dynamic', [253, 152, 39]),
   SAD: new MoodColor('sad', [255, 253, 56]),
   CALM: new MoodColor('calm', [108, 167, 84]),

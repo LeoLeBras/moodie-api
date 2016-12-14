@@ -31,7 +31,14 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
       const state = lightState.create()
 
       // Make an array with lights
-      const bridgeLights = (await api.lights()).lights.map(light => parseInt(light.id))
+      let bridgeLights
+      try {
+        bridgeLights = (await api.lights()).lights.map(light => parseInt(light.id))
+      } catch (error) {
+        logger.error('Cannot retrieve lights, are you connected to the right router?', error)
+        return
+      }
+
       const lights = options.lights
         ? options.lights.filter(id => bridgeLights.includes(id))
         : bridgeLights
@@ -47,7 +54,7 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
           // Brightness = 0 : Turn off
           state.off()
         } else {
-          state.on().transitionTime(1000)
+          state.on().transitionTime(20)
           if (typeof brightness === 'number') {
             // Brightness = 1 - 100 : Update if
             state.brightness(brightness)

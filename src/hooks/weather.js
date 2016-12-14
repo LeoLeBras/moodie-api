@@ -5,14 +5,14 @@ import type { Action } from '@helpers/socket'
 
 module.exports = {
   name: 'weather',
-  action: (packet: Action) => {
+  action: (method: Action) => {
     // Return true (= make packet) if weather is different from clear
-    return packet.type.indexOf('/CLEAR') === -1
+    return method !== 'CLEAR'
   },
-  make: (packet: Action): MoodState => {
-    if (packet.type.indexOf('/RAIN') > -1) {
+  make: (method: Action) => {
+    if (method === 'RAIN') {
       return new MoodState(50, 15 * 60, Moods.SAD)
-    } else if (packet.type.indexOf('/STORM') > -1) {
+    } else if (method === 'STORM') {
       return new MoodState(50, 15 * 60, Moods.CALM)
     }
     return null

@@ -18,7 +18,7 @@ import Logger from '@helpers/logger'
 Logger.setGlobalLevel(config.loglevel)
 
 // Manager: Initialize
-const manager = new Manager(config.bridge.brightness)
+const manager = new Manager(config.bridge.brightness, config.bridge.intensity)
 manager.start()
 
 // Koa: initialize web server
@@ -36,9 +36,9 @@ app.use(function* start() {
 const socket = io(server)
 messenger(({ watch, dispatch }) => {
   // A new connection is made, greet him
-  dispatch('welcome')
+  manager.connect(dispatch)
   // Listen for incoming packets
-  watch(x => manager.receive(x))
+  watch(x => manager.receive(dispatch, x))
 })(socket, { logger: new Logger('socket'), server: true })
 
 // Hue: find Hue bridge
@@ -57,7 +57,7 @@ server.listen(port)
 // Task: start services
 glob('src/services/*.js', (err, files) => {
   files.forEach((file) => {
-    const service = require(`../${file}`)
+    const service = require(`../${file}`).default
     service.start(manager, new Logger(`service|${service.name}`))
   })
 })
