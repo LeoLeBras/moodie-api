@@ -47,7 +47,7 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
           // Brightness = 0 : Turn off
           state.off()
         } else {
-          state.on()
+          state.on().transitionTime(1000)
           if (typeof brightness === 'number') {
             // Brightness = 1 - 100 : Update if
             state.brightness(brightness)

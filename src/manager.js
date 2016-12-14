@@ -18,7 +18,7 @@ glob('src/hooks/*.js', (err, files) => {
 export default class Manager {
 
   handlers: Array<Function>
-  states: Array<Mood>
+  states: Map<string, Mood>
   logger: Logger
 
   brightness: number
@@ -30,7 +30,7 @@ export default class Manager {
 
   constructor(brightness: ?number) {
     this.handlers = []
-    this.states = []
+    this.states = new Map()
     this.logger = new Logger('manager')
 
     this.brightness = brightness || 100
@@ -41,6 +41,7 @@ export default class Manager {
 
   setBrightness(brightness: number) {
     this.brightness = brightness
+    this.send(null, brightness)
   }
 
   receive(packet: Action) {
@@ -51,7 +52,7 @@ export default class Manager {
       const moodState = hook.make(packet)
       if (moodState) {
         this.logger.info(`Received packet ${packet.type}!`)
-        this.addState(moodState)
+        this.addState(name, moodState)
         const color = moodState.getMood().getColor()
         this.send(color, this.brightness)
       } else {
@@ -62,8 +63,17 @@ export default class Manager {
     }
   }
 
-  addState(state: MoodState) {
-    this.states.push(state)
+  addState(identifier: string, state: MoodState) {
+    if (typeof identifier === 'string' && state instanceof MoodState) {
+      this.states.set(identifier, state)
+      return
+    }
+
+    throw new Error('Wrong parameters (must be string, MoodState)')
+  }
+
+  removeState(identifier: string) {
+    this.states.delete(identifier)
   }
 
   send(color: ?Array<number>, brightness: ?number) {
@@ -71,7 +81,7 @@ export default class Manager {
 
     // Check if we need to change color
     let newColor = color
-    if (newColor === this.currentColor) {
+    if (!newColor || newColor === this.currentColor) {
       newColor = null
     } else {
       this.currentColor = newColor
@@ -118,10 +128,13 @@ export default class Manager {
     if (!this.task) {
       this.task = setInterval(() => {
         let currentState = this.defaultState
-        this.states.forEach((state) => {
-          state.tick()
-          if (state.getPriority() > currentState.getPriority) {
-            currentState = state
+        this.states.forEach((state, key) => {
+          if (state.tick()) {
+            if (state.getPriority() > currentState.getPriority()) {
+              currentState = state
+            }
+          } else {
+            this.states.delete(key)
           }
         })
         this.send(currentState.getMood().getColor())

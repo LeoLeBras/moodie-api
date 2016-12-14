@@ -1,6 +1,7 @@
 /* @flow */
 
 import readline from 'readline'
+import colors from 'colors/safe'
 import { Moods, MoodState, MoodColor } from '@base/mood'
 import Logger, { makeCliColor } from '@helpers/logger'
 import Manager from '@root/manager'
@@ -18,6 +19,7 @@ export default function (manager: Manager, config: Object) {
     if (text.length === 0) {
       if (lastCommand) {
         text = lastCommand
+        console.log(colors.black(`$ ${lastCommand}`))
       } else {
         cliLogger.error('No last command to resend')
         return
@@ -51,15 +53,15 @@ export default function (manager: Manager, config: Object) {
       } else {
         // Get values from args
         const rgb = [args[1], args[2], args[3]].map(x => parseInt(x))
-        const brightness = args.length === 5 ? parseInt(args[4]) : undefined
+        const seconds = args.length >= 5 ? parseInt(args[4]) : 30
 
         // Test valid number
-        if (rgb.concat(brightness).some(isNaN)) {
+        if (rgb.some(isNaN)) {
           cliLogger.error('Incorrect number')
         } else {
           // Then send color
           cliLogger.info('Dispatching color...')
-          manager.send(rgb, brightness)
+          manager.addState('override', new MoodState(1000, seconds, new MoodColor('rgb', rgb)))
         }
       }
       return
@@ -72,7 +74,6 @@ export default function (manager: Manager, config: Object) {
         if (!isNaN(brightness)) {
           manager.setBrightness(brightness)
           cliLogger.info(`Brightness set to ${brightness}`)
-          manager.send(null, brightness)
           return
         }
       }
@@ -93,31 +94,37 @@ export default function (manager: Manager, config: Object) {
     // Switch off the light
     if (args[0] === 'off') {
       cliLogger.info('Switching off...')
-      manager.send([255, 255, 255], 0)
+      manager.setBrightness(0)
+      const seconds = args.length >= 2 ? parseInt(args[1]) : 30
+      manager.addState('override', new MoodState(1000, seconds, Moods.WHITE))
       return
     }
 
     // Minimum light
     if (args[0] === 'min') {
       cliLogger.info('Minimum light...')
-      manager.send([255, 255, 255], 1)
+      manager.setBrightness(1)
+      const seconds = args.length >= 2 ? parseInt(args[1]) : 30
+      manager.addState('override', new MoodState(1000, seconds, Moods.WHITE))
       return
     }
 
     // Maximum light
     if (args[0] === 'max') {
       cliLogger.info('Maximum light...')
-      manager.send([255, 255, 255], 100)
+      manager.setBrightness(100)
+      const seconds = args.length >= 2 ? parseInt(args[1]) : 30
+      manager.addState('override', new MoodState(1000, seconds, Moods.WHITE))
       return
     }
 
     // Random
     if (args[0] === 'rand') {
       cliLogger.info('Random color...')
-      // const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
+      const seconds = args.length >= 2 ? parseInt(args[1]) : 30
       const rand = () => Math.floor(Math.random() * 255)
       const rgb = [rand(), rand(), rand()]
-      manager.addState(new MoodState(999, 30, new MoodColor('rand', rgb)))
+      manager.addState('override', new MoodState(1000, seconds, new MoodColor('rand', rgb)))
       return
     }
 
@@ -126,9 +133,9 @@ export default function (manager: Manager, config: Object) {
       if (args.length >= 2) {
         const mood = Moods[args[1].toUpperCase()]
         if (mood) {
-          const brightness = args.length >= 3 ? parseInt(args[2]) : undefined
           cliLogger.info(`Mood ${mood.getName()}...`)
-          manager.send(mood.getColor(), brightness)
+          const seconds = args.length >= 3 ? parseInt(args[2]) : 30
+          manager.addState('override', new MoodState(1000, seconds, mood))
         } else {
           cliLogger.error(`Unknown mood: ${args[1].toUpperCase()}`)
         }
