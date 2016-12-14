@@ -18,13 +18,13 @@ glob('src/hooks/*.js', (err, files) => {
 export default class Manager {
 
   handlers: Array<Function>
-  states: Map<string, Mood>
+  states: Map<string, MoodState>
   logger: Logger
 
   brightness: number
   currentColor: ?Array<number>
   currentBrightness: ?number
-  defaultState: Mood
+  defaultState: MoodState
 
   task: ?number
 

@@ -91,6 +91,15 @@ export default function (manager: Manager, config: Object) {
       return
     }
 
+    // Current states
+    if (['states', 'state', 's'].includes(args[0])) {
+      cliLogger.info('States:')
+      manager.states.forEach((value, key) => {
+        cliLogger.info(`"${key}" => ${value.duration}s, ${value.priority}, {"${value.mood.name}", [${value.mood.rgb}]}`)
+      })
+      return
+    }
+
     // Switch off the light
     if (args[0] === 'off') {
       cliLogger.info('Switching off...')
