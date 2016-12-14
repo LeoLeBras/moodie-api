@@ -8,7 +8,7 @@ export const makeCliColor = (r: number, g: number, b: number, cb: ?Function) => 
     return cp.exec(`printf "|\x1b[48;2;${r};${g};${b}m   \x1b[0m|"`, (err, stdout) => {
       return resolve(stdout)
     })
-  }).then(cb)
+  }).then(cb || (x => x))
 }
 
 let globalLogLevel = 0

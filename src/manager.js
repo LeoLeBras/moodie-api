@@ -49,17 +49,25 @@ export default class Manager {
     const name = type[0].replace('@@', '')
     const hook = hooks[name]
     if (hook) {
-      const moodState = hook.make(packet)
-      if (moodState) {
-        this.logger.info(`Received packet ${packet.type}!`)
-        this.addState(name, moodState)
-        const color = moodState.getMood().getColor()
-        this.send(color, this.brightness)
+      const action = hook.action(packet)
+      if (action === true) {
+        const moodState = hook.make(packet)
+        if (moodState) {
+          this.logger.info(`Received packet ${packet.type}!`)
+          this.addState(name, moodState)
+          const color = moodState.getMood().getColor()
+          this.send(color, this.brightness)
+        } else {
+          this.logger.warn(`Made packet ${packet.type}, but nothing returned`)
+        }
+      } else if (action === false) {
+        this.logger.info(`Clearing packet ${name}`)
+        this.removeState(name)
       } else {
-        this.logger.warn(`Packet ${packet.type} discarded`)
+        this.logger.info(`Ignoring packet ${packet.type}`)
       }
     } else {
-      this.logger.warn(`Packet ${packet.type} not found`)
+      this.logger.warn(`Hook ${packet.type} not found`)
     }
   }
 
@@ -69,7 +77,17 @@ export default class Manager {
       return
     }
 
-    throw new Error('Wrong parameters (must be string, MoodState)')
+    if (typeof identifier !== 'string') {
+      throw new Error(`Wrong parameters (identifier must be string, ${typeof identifier} given)`)
+    }
+
+    if (!state) {
+      throw new Error('Wrong parameters (state cannot be null)')
+    }
+
+    if (!(state instanceof MoodState)) {
+      throw new Error(`Wrong parameters (state must be MoodState, ${state.constructor.name} given)`)
+    }
   }
 
   removeState(identifier: string) {

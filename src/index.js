@@ -1,9 +1,10 @@
 /* @flow */
-/* eslint require-yield: 0 */
+/* eslint require-yield: 0, global-require: 0, import/no-dynamic-require: 0 */
 
 import koa from 'koa'
 import http from 'http'
 import io from 'socket.io'
+import glob from 'glob'
 
 import Manager from '@root/manager'
 import config from '@root/config'
@@ -52,3 +53,12 @@ cli(manager, config)
 
 // Koa: Listen events
 server.listen(port)
+
+// Task: start services
+glob('src/services/*.js', (err, files) => {
+  files.forEach((file) => {
+    const service = require(`../${file}`)
+    service.start(manager, new Logger(`service|${service.name}`))
+  })
+})
+

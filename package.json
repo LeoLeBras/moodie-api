@@ -29,6 +29,8 @@
     "koa-static": "^2.0.0",
     "node-hue-api": "^2.3.0",
     "nodemon": "^1.11.0",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1",
     "socket.io": "^1.7.1"
   },
   "devDependencies": {
