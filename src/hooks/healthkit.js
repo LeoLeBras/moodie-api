@@ -6,7 +6,7 @@ module.exports = {
   name: 'healthkit',
   action: (method: string) => {
     // Update mood
-    if (['GET_STEP_COUNT', 'START_ACTIVITY', 'STOP_ACTIVITY'].includes(method)) {
+    if (['GET_SLEEP_SAMPLE', 'GET_STEP_COUNT', 'START_ACTIVITY', 'STOP_ACTIVITY'].includes(method)) {
       return true
     }
 
@@ -25,6 +25,15 @@ module.exports = {
     } else if (method === 'INCREASE_HEART_RATE') {
       if (payload.value >= 120) {
         return new MoodState(120, 10 * 60, Moods.NERVOUS)
+      }
+    } else if (method === 'GET_SLEEP_SAMPLE') {
+      if (payload.sleep.value === 'INBED') {
+        const start = new Date(payload.sleep.endDate)
+        const end = new Date(payload.sleep.endDate)
+        const hours = (end.getTime() - start.getTime()) / 1000 / 3600
+        if (hours < 8) {
+          return new MoodState(100, 15 * 60, Moods.FOCUSED)
+        }
       }
     }
 

@@ -2,6 +2,7 @@
 /* eslint require-yield: 0, global-require: 0, import/no-dynamic-require: 0 */
 
 import koa from 'koa'
+import serve from 'koa-static'
 import http from 'http'
 import io from 'socket.io'
 import glob from 'glob'
@@ -28,9 +29,7 @@ const port = process.env.PORT || (config.server && config.server.port) || 3000
 new Logger('koa').info(`Start koa server on port ${port} 📣`)
 
 // Koa: return "Hello World" for all GET methods
-app.use(function* start() {
-  this.body = 'Hello World'
-})
+app.use(serve(`${__dirname}/htdocs`))
 
 // Socket.io: initialize socket messaging
 const socket = io(server)
@@ -46,13 +45,11 @@ bridge(manager.dispatcher(), {
   logger: new Logger('hue'),
   username: config.bridge.username,
   lights: config.bridge.lights,
+  brightness: config.bridge.brightness,
 })
 
 // CLI: listen to terminal input
 cli(manager, config)
-
-// Koa: Listen events
-server.listen(port)
 
 // Task: start services
 glob('src/services/*.js', (err, files) => {
@@ -62,3 +59,5 @@ glob('src/services/*.js', (err, files) => {
   })
 })
 
+// Koa: Listen events
+server.listen(port)

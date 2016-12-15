@@ -151,6 +151,16 @@ export default function (manager: Manager, config: Object) {
       return
     }
 
+    // Wake
+    if (args[0] === 'wake') {
+      manager.connections.forEach(cb => cb({
+        type: '@@healthkit/WAIT_AWAKENING',
+        payload: {},
+      }))
+      cliLogger.info('Sent WAIT_AWAKENING')
+      return
+    }
+
     // Select a mood color
     if (args[0] === 'mood') {
       if (args.length >= 2) {

@@ -74,7 +74,14 @@ class Logger {
   }
 
   colorlog(color: Function, items: any) {
-    console.log.apply(this, [color(this.prefix)].concat(items))
+
+    const date = new Date()
+    const hours = `00${date.getHours()}`.slice(-2)
+    const minutes = `00${date.getMinutes()}`.slice(-2)
+    const seconds = `00${date.getSeconds()}`.slice(-2)
+    const time = colors.black(`[${hours}:${minutes}:${seconds}]`)
+
+    console.log.apply(this, [time, color(this.prefix)].concat(items))
   }
 }
 

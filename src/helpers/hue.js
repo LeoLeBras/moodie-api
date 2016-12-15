@@ -25,7 +25,7 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
   const logger = options.logger
   try {
     // Begin by searching for bridges
-    logger.info('Searching bridges ... 🔥')
+    logger.info('Searching bridges ...')
 
     const bridges = await new Promise((resolve) => {
       // Get via public url
@@ -43,7 +43,7 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
 
     // Search ended
     if (bridges.length > 0) {
-      logger.info('Bridges found:', JSON.stringify(bridges))
+      logger.info(`Bridges found: ${bridges[0].ipaddress} 🔥`)
 
       // Use the first bridge
       const bridge = bridges[0]

@@ -1,6 +1,7 @@
 /* @flow */
 
 import Logger from '@helpers/logger'
+import colors from 'colors/safe'
 
 export type Action = {
   type: string,
@@ -20,7 +21,8 @@ export const watch = (callback: Function): Function => {
   // Return a watcher using callback
   return (socket, options: Options): void => {
     socket.on(DISPATCH, (action: Action) => {
-      options.logger.log(3, '👉 ', action)
+      const addr = socket.handshake.address.split(':').pop()
+      options.logger.log(3, colors.green(`[${addr}]`), '👉 ', action)
       callback(action)
     })
   }
@@ -31,7 +33,8 @@ export const dispatch = (actions: Array<Action>): Function => {
   // Return a dispatcher that iterate over actions
   return (socket, options: Options): void => {
     actions.forEach((action) => {
-      options.logger.log(3, '👈 ', action)
+      const addr = socket.handshake.address.split(':').pop()
+      options.logger.log(3, colors.green(`[${addr}]`), '👈 ', action)
       socket.emit(DISPATCH, action)
     })
   }
@@ -49,7 +52,8 @@ export default (worker: Function): Function => {
     if (options.server) {
       options.logger.info('✋ ', 'init')
       return io.on('connection', (socket) => {
-        options.logger.info('👌 ', 'new connection')
+        const addr = socket.handshake.address.split(':').pop()
+        options.logger.info(colors.green(`[${addr}]`), '👌 ', 'new connection')
         start(socket)
       })
     }
