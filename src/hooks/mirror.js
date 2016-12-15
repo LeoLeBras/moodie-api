@@ -1,15 +1,14 @@
 /* @flow */
 
 import { Moods, MoodState } from '@base/mood'
-import type { Action } from '@helpers/socket'
 
 module.exports = {
   name: 'mirror',
-  action: (method: Action) => {
+  action: (method: string) => {
     // Only use GET_ANALYSIS packets
     return method === 'GET_ANALYSIS'
   },
-  make: (method: Action, payload: Object) => {
+  make: (method: string, payload: Object) => {
     let mood
     if (payload.analysis.joy > 30) {
       mood = Moods.JOY

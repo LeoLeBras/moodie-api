@@ -1,15 +1,14 @@
 /* @flow */
 
 import { Moods, MoodState } from '@base/mood'
-import type { Action } from '@helpers/socket'
 
 module.exports = {
   name: 'weather',
-  action: (method: Action) => {
+  action: (method: string) => {
     // Return true (= make packet) if weather is different from clear
     return method !== 'CLEAR'
   },
-  make: (method: Action) => {
+  make: (method: string) => {
     if (method === 'RAIN') {
       return new MoodState(50, 15 * 60, Moods.SAD)
     } else if (method === 'STORM') {

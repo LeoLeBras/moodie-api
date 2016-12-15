@@ -58,7 +58,7 @@ server.listen(port)
 glob('src/services/*.js', (err, files) => {
   files.forEach((file) => {
     const service = require(`../${file}`).default
-    service.start(manager, new Logger(`service|${service.name}`))
+    manager.addService(service)
   })
 })
 

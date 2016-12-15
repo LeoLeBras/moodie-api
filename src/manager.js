@@ -6,12 +6,12 @@ import Logger, { makeCliColor } from '@helpers/logger'
 import type { Action } from '@helpers/socket'
 import { Mood, MoodState, MoodColor } from '@base/mood'
 
-const hooks = {}
+const hooks = new Map()
 
 glob('src/hooks/*.js', (err, files) => {
   files.forEach((file) => {
     const hook = require(`../${file}`)
-    hooks[hook.name] = hook
+    hooks.set(hook.name, hook)
   })
 })
 
@@ -22,10 +22,14 @@ export default class Manager {
   states: Map<string, MoodState>
   logger: Logger
 
+  hooks: Map<string, Object>
+  services: Map<string, Object>
+
   brightness: number
   intensity: number
   currentColor: Array<number>
   currentBrightness: number
+  currentMood: string
   defaultState: MoodState
 
   task: ?number = null
@@ -41,7 +45,10 @@ export default class Manager {
     this.currentColor = [255, 255, 255]
     this.currentBrightness = this.brightness
 
-    this.defaultState = new MoodState(0, -1, new MoodColor('normal'))
+    this.defaultState = new MoodState(0, -1, new MoodColor('joy'))
+
+    this.hooks = hooks
+    this.services = new Map()
   }
 
   setBrightness(brightness: number) {
@@ -54,14 +61,19 @@ export default class Manager {
     this.send(this.currentColor, null)
   }
 
+  addService(service: Object) {
+    if (service.start) {
+      service.start(this, new Logger(`service|${service.name}`))
+    }
+    this.services.set(service.name, service)
+  }
+
+  addHook(hook: Object) {
+    this.hooks.set(hook.name, hook)
+  }
+
   connect(dispatcher: Function) {
     this.connections.push(dispatcher)
-    if (this.handlers.length) {
-      dispatcher({
-        type: '@@hue/BRIDGE_SEARCH_SUCCEEDED',
-        payload: {},
-      })
-    }
   }
 
   receive(dispatcher: Function, packet: Action) {
@@ -69,8 +81,9 @@ export default class Manager {
     const payload = packet.payload
     const name = type.split('/')[0].replace('@@', '')
     const method = type.split('/')[1]
-    const hook = hooks[name]
+    const hook = this.hooks.get(name)
     if (hook) {
+      this.logger.info(`Incoming packet ${packet.type}`)
       const action = hook.action ? hook.action(method, payload, this) : true
       if (action === true) {
         if (hook.make) {
@@ -85,7 +98,10 @@ export default class Manager {
           }
         }
         if (hook.respond && dispatcher) {
-          dispatcher(hook.respond(method, payload, this))
+          const response = hook.respond(method, payload, this)
+          if (response) {
+            dispatcher(response)
+          }
         }
       } else if (action === false) {
         this.logger.info(`Clearing packet ${name}`)
@@ -94,7 +110,7 @@ export default class Manager {
         this.logger.info(`Ignoring packet ${packet.type}`)
       }
     } else {
-      this.logger.warn(`Hook ${packet.type} not found`)
+      this.logger.warn(`Hook ${name} not found`)
     }
   }
 
@@ -189,7 +205,18 @@ export default class Manager {
             this.states.delete(key)
           }
         })
-        this.send(currentState.getMood().getColor())
+        const mood = currentState.getMood()
+        this.send(mood.getColor())
+
+        if (this.currentMood !== mood.getName()) {
+          this.currentMood = mood.getName()
+          this.connections.forEach(dispatcher => dispatcher({
+            type: '@@mood/CHANGE_MOOD',
+            payload: {
+              mood: mood.getName(),
+            },
+          }))
+        }
       }, 1000)
     }
   }
