@@ -53,16 +53,12 @@ export class MoodColor extends Mood {
 }
 
 export const Moods = {
-  DYNAMIC: new MoodColor('dynamic', [253, 152, 39]),
+  MOTIVATED: new MoodColor('motivated', [253, 152, 39]),
   SAD: new MoodColor('sad', [255, 253, 56]),
   CALM: new MoodColor('calm', [108, 167, 84]),
-  ANGRY: new MoodColor('angry', [43, 254, 197]),
-  FOCUS: new MoodColor('focus', [152, 37, 251]),
-  JOY: new MoodColor('joy', [252, 40, 252]),
-}
-
-type Options = {
-  decreasePerSecond: number
+  NERVOUS: new MoodColor('nervous', [43, 254, 197]),
+  FOCUSED: new MoodColor('focused', [152, 37, 251]),
+  HAPPY: new MoodColor('happy', [252, 40, 252]),
 }
 
 export class MoodState {
@@ -71,17 +67,10 @@ export class MoodState {
   duration: number
   mood: Mood
 
-  decreasePerSecond: ?number
-
   constructor(priority: number, duration: number, mood: Mood) {
     this.priority = priority
     this.duration = duration
     this.mood = mood
-  }
-
-  options({ decreasePerSecond }: Options) {
-    this.mood = Moods.SAD
-    console.log(decreasePerSecond * 10)
   }
 
   getPriority() {
@@ -98,15 +87,7 @@ export class MoodState {
 
   tick() {
     this.duration -= 1
-    if (this.duration <= 0) {
-      // Invalid state
-      return false
-    }
-
-    if (typeof this.decreasePerSecond === 'number' && this.decreasePerSecond) {
-      this.priority -= this.decreasePerSecond
-    }
-    return true
+    return this.duration > 0
   }
 
 }

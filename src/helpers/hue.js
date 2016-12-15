@@ -27,11 +27,19 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
     // Begin by searching for bridges
     logger.info('Searching bridges ... 🔥')
 
-    // Get via public url
-    // const bridges = await hue.nupnpSearch()
+    const bridges = await new Promise((resolve) => {
+      // Get via public url
+      hue.nupnpSearch().then((data) => {
+        logger.info('Resolved via public url')
+        resolve(data)
+      })
 
-    // Get via pinging network
-    const bridges = await hue.upnpSearch()
+      // Get via pinging network
+      hue.upnpSearch().then((data) => {
+        logger.info('Resolved via pinging network')
+        resolve(data)
+      })
+    })
 
     // Search ended
     if (bridges.length > 0) {
@@ -70,12 +78,15 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
         logger.info(`Updating lights ${JSON.stringify(lights)}`)
 
         // Make lightstate
+        let isOn
         state.reset()
         if (brightness === 0) {
           // Brightness = 0 : Turn off
           lastBrightness = 0
           state.off()
+          isOn = false
         } else {
+          isOn = true
           state.on().transitionTime(20)
           if (typeof brightness === 'number') {
             // Brightness = 1 - 100 : Update if
@@ -97,7 +108,7 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
         let step = 0
 
         const loop = () => {
-          if (from && to) {
+          if (isOn && from && to) {
             step += 1
             if (step % 2) {
               state.rgb(from[0], from[1], from[2])

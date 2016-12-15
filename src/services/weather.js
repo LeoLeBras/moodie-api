@@ -38,7 +38,7 @@ export default {
         } else if (now > sunrise) {
           // 0 to 1 hour after sunrise
           if (now < sunrise + (60 * 1000)) {
-            manager.addState('sun', new MoodState(30, 15 * 60, Moods.DYNAMIC))
+            manager.addState('sun', new MoodState(30, 15 * 60, Moods.MOTIVATED))
             sunLogger.info('Fresh morning')
           }
         }

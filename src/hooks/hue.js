@@ -8,10 +8,10 @@ let lastBrightness = config.bridge.brightness
 module.exports = {
   name: 'hue',
   action: (method: string) => {
-    return ['BRIDGE_SEARCH_SUCCEEDED', 'CHANGE_BRIGHTNESS', 'CHANGE_SATURATION', 'TURN_OFF', 'TURN_ON'].includes(method)
+    return ['BRIDGE_SEARCH_REQUESTED', 'CHANGE_BRIGHTNESS', 'CHANGE_SATURATION', 'TURN_OFF', 'TURN_ON'].includes(method)
   },
   respond: (method: string, payload: Object, manager: Manager) => {
-    if (method === 'BRIDGE_SEARCH_SUCCEEDED') {
+    if (method === 'BRIDGE_SEARCH_REQUESTED') {
       if (manager.handlers.length) {
         return {
           type: '@@hue/BRIDGE_SEARCH_SUCCEEDED',

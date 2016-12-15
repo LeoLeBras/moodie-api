@@ -19,12 +19,12 @@ module.exports = {
         return new MoodState(150, 30 * 60, Moods.CALM)
       }
     } else if (method === 'START_ACTIVITY') {
-      return new MoodState(180, 30 * 60, Moods.DYNAMIC)
+      return new MoodState(180, 30 * 60, Moods.MOTIVATED)
     } else if (method === 'STOP_ACTIVITY') {
-      return new MoodState(200, 5 * 60, Moods.DYNAMIC)
+      return new MoodState(200, 5 * 60, Moods.MOTIVATED)
     } else if (method === 'INCREASE_HEART_RATE') {
       if (payload.value >= 120) {
-        return new MoodState(120, 10 * 60, Moods.ANGRY)
+        return new MoodState(120, 10 * 60, Moods.NERVOUS)
       }
     }
 

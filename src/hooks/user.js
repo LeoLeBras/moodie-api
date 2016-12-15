@@ -27,7 +27,6 @@ module.exports = {
           payload: {},
         }
         manager.setBrightness(lastBrightness)
-        return true
       }
 
       // Wait for 1m
@@ -50,7 +49,7 @@ module.exports = {
   make: () => {
     if (cameBackHome) {
       cameBackHome = false
-      return new MoodState(100, 30 * 60, Moods.FOCUS)
+      return new MoodState(100, 30 * 60, Moods.FOCUSED)
     }
     return null
   },

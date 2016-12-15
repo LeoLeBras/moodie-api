@@ -11,7 +11,7 @@ module.exports = {
   make: (method: string, payload: Object) => {
     let mood
     if (payload.analysis.joy > 30) {
-      mood = Moods.JOY
+      mood = Moods.HAPPY
     } else if (payload.analysis.sadness > 10) {
       mood = Moods.SAD
     } else {

@@ -5,7 +5,7 @@ import { Moods, MoodState } from '@base/mood'
 module.exports = {
   name: 'mood',
   action: (method: string) => {
-    return method === 'SELECT_MOOD'
+    return method === 'SELECT'
   },
   make: (method: string, payload: Object) => {
     const key = payload.mood.toUpperCase()
