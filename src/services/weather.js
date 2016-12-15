@@ -14,9 +14,9 @@ const sunLogger = new Logger('sun')
 export default {
   name: 'weather',
   start: async (manager: Manager, logger: Logger) => {
-    try {
-      const callback = async function weatherLoop() {
-        logger.info('Querying...')
+    const callback = async function weatherLoop() {
+      try {
+        logger.log(4, 'Querying weather...')
         const geo = JSON.parse(await request(IP_URL))
 
         const parsedUrl = WEATHER_URL.replace('{lat}', geo.lat).replace('{lon}', geo.lon)
@@ -65,12 +65,12 @@ export default {
             payload: { conditions },
           })
         }
+      } catch (error) {
+        logger.error(`Exception thrown: ${error.message}`)
       }
-
-      callback()
-      setInterval(callback, 10 * 60 * 1000)
-    } catch (error) {
-      logger.error('Exception thrown:', error)
     }
+
+    callback()
+    setInterval(callback, 10 * 60 * 1000)
   },
 }

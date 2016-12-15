@@ -83,7 +83,7 @@ export default class Manager {
     const method = type.split('/')[1]
     const hook = this.hooks.get(name)
     if (hook) {
-      this.logger.info(`Incoming packet ${packet.type}`)
+      this.logger.log(4, `Incoming packet ${packet.type}`)
       const action = hook.action ? hook.action(method, payload, this) : true
       if (action === true) {
         if (hook.make) {
@@ -189,6 +189,7 @@ export default class Manager {
     return (name: string, handler: Function) => {
       this.logger.info(`Added handler: ${name}!`)
       this.handlers.push(handler)
+      handler(this.currentColor, this.currentBrightness)
     }
   }
 
@@ -205,6 +206,7 @@ export default class Manager {
             this.states.delete(key)
           }
         })
+
         const mood = currentState.getMood()
         this.send(mood.getColor())
 

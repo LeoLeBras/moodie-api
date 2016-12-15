@@ -7,8 +7,6 @@ import Manager from '@root/manager'
 import Logger from '@helpers/logger'
 
 const LASTFM_URL = 'http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=jadefrh&api_key=a28957333267eac9f3f43e12b5744506&format=json'
-const TRACK_SEARCH_URL = 'https://api.spotify.com/v1/search?type=track&q='
-const TRACK_ANALYSIS_URL = 'https://api.spotify.com/v1/audio-features/'
 
 const spotifyApi = new SpotifyWebApi({
   clientId: 'db6ec2aef6204a2ba74039e4cd11d3e4',
@@ -21,7 +19,7 @@ export default {
   start: async (manager: Manager, logger: Logger) => {
     const callback = async function musicsLoop() {
       try {
-        logger.info('Querying...')
+        logger.log(4, 'Querying musics...')
         const tracks = JSON.parse(await request(LASTFM_URL))
 
         const lastTrack = tracks.recenttracks.track[0]
@@ -38,6 +36,11 @@ export default {
 
         const search = (await spotifyApi.searchTracks(`${songName} ${artist}`)).body
         const result = search.tracks.items[0]
+
+        if (!result) {
+          logger.warn(`No results for "${songName} - ${artist}"`)
+          return
+        }
 
         const slugify = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '')
 
@@ -59,7 +62,7 @@ export default {
           logger.warn(`Analyse not found for ${result.id}`)
         }
       } catch (error) {
-        logger.error('Exception thrown:', error)
+        logger.error(`Exception thrown: ${error.message}`)
       }
     }
 

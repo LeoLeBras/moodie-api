@@ -12,12 +12,25 @@ export type Options = {
 const HueApi = hue.HueApi
 const lightState = hue.lightState
 
+const changeSaturation = (rgb: Array<number>, intensity: number) => {
+  const average = rgb.reduce((p, c) => p + c, 0) / 3
+  return rgb.map(x => x + ((average - x) * ((100 - intensity) / 100)))
+            .map(Math.round)
+            .map(x => (x < 0 ? 0 : x))
+            .map(x => (x > 255 ? 255 : x))
+}
+
 export default async (addHandler: Function, options: Options): Promise<void> => {
   const logger = options.logger
   try {
     // Begin by searching for bridges
     logger.info('Searching bridges ... 🔥')
-    const bridges = await hue.nupnpSearch()
+
+    // Get via public url
+    // const bridges = await hue.nupnpSearch()
+
+    // Get via pinging network
+    const bridges = await hue.upnpSearch()
 
     // Search ended
     if (bridges.length > 0) {
@@ -39,9 +52,16 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
         return
       }
 
-      const lights = options.lights
+      let lights = options.lights
         ? options.lights.filter(id => bridgeLights.includes(id))
         : bridgeLights
+
+      logger.info(`Found lights: ${JSON.stringify(lights)}`)
+
+      let interval = 0
+      let lastBrightness = options.brightness
+      let from
+      let to
 
       // Add handler to send new colors
       addHandler('philips-hue', (rgb: ?Array<number>, brightness: ?number) => {
@@ -52,35 +72,61 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
         state.reset()
         if (brightness === 0) {
           // Brightness = 0 : Turn off
+          lastBrightness = 0
           state.off()
         } else {
           state.on().transitionTime(20)
           if (typeof brightness === 'number') {
             // Brightness = 1 - 100 : Update if
+            lastBrightness = brightness
             state.brightness(brightness)
           }
+
+          from = null
+          to = null
 
           if (rgb) {
             // RGB is defined : Update it
             state.rgb(rgb[0], rgb[1], rgb[2])
+            from = changeSaturation(rgb, 120)
+            to = changeSaturation(rgb, 70)
           }
         }
 
-        // Iterate over each light
-        lights.forEach(async (id: number) => {
-          try {
-            // And apply new light state
-            const result = await api.setLightState(id, state)
-            if (result !== true) {
-              logger.warn(`Cannot change light state for #${id}:`, result)
+        let step = 0
+
+        const loop = () => {
+          if (from && to) {
+            step += 1
+            if (step % 2) {
+              state.rgb(from[0], from[1], from[2])
+              state.brightness(lastBrightness > 95 ? 100 : lastBrightness + 5)
+            } else {
+              state.rgb(to[0], to[1], to[2])
+              state.brightness(lastBrightness < 5 ? 0 : lastBrightness - 5)
             }
-          } catch (e) {
-            // Remove light on error
-            const index = lights.indexOf(id)
-            if (index !== -1) lights.splice(index, 1)
-            logger.warn(`Removed light #${id}, due to ${e.message}`)
           }
-        })
+
+          // Iterate over each light
+          lights.forEach(async (id: number) => {
+            try {
+              // And apply new light state
+              const result = await api.setLightState(id, state)
+              if (result !== true) {
+                logger.warn(`Cannot change light state for #${id}:`, result)
+              }
+            } catch (e) {
+              // Remove light on error
+              const index = lights.indexOf(id)
+              if (index !== -1) lights = lights.splice(index, 1)
+              logger.warn(`Removed light #${id}, due to ${e.message}`)
+            }
+          })
+        }
+
+        clearInterval(interval)
+        interval = setInterval(loop, 2500)
+        loop()
 
         // Return true while there are lights
         return lights.length > 0

@@ -61,7 +61,7 @@ export default function (manager: Manager, config: Object) {
         } else {
           // Then send color
           cliLogger.info('Dispatching color...')
-          manager.addState('override', new MoodState(1000, seconds, new MoodColor('rgb', rgb)))
+          manager.addState('override', new MoodState(1000, seconds, new MoodColor('joy', rgb)))
         }
       }
       return
@@ -119,7 +119,7 @@ export default function (manager: Manager, config: Object) {
       cliLogger.info('Switching off...')
       manager.setBrightness(0)
       const seconds = args.length >= 2 ? parseInt(args[1]) : 30
-      manager.addState('override', new MoodState(1000, seconds, Moods.WHITE))
+      manager.addState('override', new MoodState(1000, seconds, new MoodColor('joy', [255, 255, 255])))
       return
     }
 
@@ -128,7 +128,7 @@ export default function (manager: Manager, config: Object) {
       cliLogger.info('Minimum light...')
       manager.setBrightness(1)
       const seconds = args.length >= 2 ? parseInt(args[1]) : 30
-      manager.addState('override', new MoodState(1000, seconds, Moods.WHITE))
+      manager.addState('override', new MoodState(1000, seconds, new MoodColor('joy', [255, 255, 255])))
       return
     }
 
@@ -137,7 +137,7 @@ export default function (manager: Manager, config: Object) {
       cliLogger.info('Maximum light...')
       manager.setBrightness(100)
       const seconds = args.length >= 2 ? parseInt(args[1]) : 30
-      manager.addState('override', new MoodState(1000, seconds, Moods.WHITE))
+      manager.addState('override', new MoodState(1000, seconds, new MoodColor('joy', [255, 255, 255])))
       return
     }
 
