@@ -1,6 +1,7 @@
 /* @flow */
 
 import request from 'request-promise'
+import SpotifyWebApi from 'spotify-web-api-node'
 
 import Manager from '@root/manager'
 import Logger from '@helpers/logger'
@@ -8,6 +9,12 @@ import Logger from '@helpers/logger'
 const LASTFM_URL = 'http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=jadefrh&api_key=a28957333267eac9f3f43e12b5744506&format=json'
 const TRACK_SEARCH_URL = 'https://api.spotify.com/v1/search?type=track&q='
 const TRACK_ANALYSIS_URL = 'https://api.spotify.com/v1/audio-features/'
+
+const spotifyApi = new SpotifyWebApi({
+  clientId: 'db6ec2aef6204a2ba74039e4cd11d3e4',
+  clientSecret: 'abd4d181727e4b83a13542ec1a5aa7f5',
+  redirectUri: 'http://localhost:3000/spotify/',
+})
 
 export default {
   name: 'musics',
@@ -25,10 +32,12 @@ export default {
 
         const songName = lastTrack.name
         const artist = lastTrack.artist['#text']
-        const query = encodeURIComponent(`${songName} ${artist}`)
 
-        const results = JSON.parse(await request(`${TRACK_SEARCH_URL}${query}`))
-        const result = results.tracks.items[0]
+        await spotifyApi.clientCredentialsGrant()
+          .then(data => spotifyApi.setAccessToken(data.body.access_token), err => logger.error('Cannot get token', err))
+
+        const search = (await spotifyApi.searchTracks(`${songName} ${artist}`)).body
+        const result = search.tracks.items[0]
 
         const slugify = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '')
 
@@ -37,19 +46,14 @@ export default {
           return
         }
 
-        const analysis = JSON.parse(await request({
-          url: `${TRACK_ANALYSIS_URL}${result.id}`,
-          headers: {
-            Authorization: 'Bearer BQARZFGBfiiKjIhfM16mlz2kUG_l6aL1NanyYP_XB1m6nfeSZ0eixWOjdhi4j8ElWxMkVPfkwtmwruKRIRawHqShsED_34FI4Kp0JIfanf8aow1u682eFtcQ_mJAA91sJ0HJ210tHMk',
-            Accept: 'application/json',
-          },
-        }))
+        const analysis = (await spotifyApi.getAudioFeaturesForTrack(result.id)).body
 
         if (analysis.id) {
           logger.info(`Now listening to ${songName} ♫`)
+          logger.log(5, 'Song analysis:', analysis)
           manager.receive(null, {
             type: '@@musics/TRACK_ANALYSIS',
-            payload: { analysis },
+            payload: analysis,
           })
         } else {
           logger.warn(`Analyse not found for ${result.id}`)
