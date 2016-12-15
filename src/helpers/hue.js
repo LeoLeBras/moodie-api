@@ -7,6 +7,7 @@ export type Options = {
   logger: Logger,
   username: string,
   lights?: Array<number>,
+  brightness: number,
 }
 
 const HueApi = hue.HueApi
@@ -108,7 +109,9 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
           }
 
           // Iterate over each light
-          lights.forEach(async (id: number) => {
+          lights.forEach(async (id: number, index: number) => {
+            // Ignore
+            if (id <= 0) return
             try {
               // And apply new light state
               const result = await api.setLightState(id, state)
@@ -117,11 +120,14 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
               }
             } catch (e) {
               // Remove light on error
-              const index = lights.indexOf(id)
-              if (index !== -1) lights = lights.splice(index, 1)
+              // const index = lights.indexOf(id)
+              // if (index !== -1) lights = lights.splice(index, 1)
+              lights[index] = 0
               logger.warn(`Removed light #${id}, due to ${e.message}`)
             }
           })
+
+          lights = lights.filter(x => x > 0)
         }
 
         clearInterval(interval)
