@@ -57,11 +57,12 @@ module.exports = {
     // Invalid
     return null
   },
-  make: (method: string) => {
+  make: (method: string, payload: Object, manager: Manager) => {
     if (cameBackHome) {
       cameBackHome = false
       // return new MoodState(100, 30 * 60, Moods.FOCUSED)
     } else if (method === 'GO_TO_SLEEP') {
+      manager.setBrightness(35)
       return new MoodState(350, 60 * 60, Moods.CALM)
     }
     return null

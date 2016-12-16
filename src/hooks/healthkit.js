@@ -20,6 +20,8 @@ module.exports = {
         return new MoodState(80, 30 * 60, Moods.CALM)
       }
     } else if (method === 'DO_ACTIVITY') {
+      manager.setIntensity(100)
+      manager.setBrightness(100)
       return new MoodState(300, 1 * 60, Moods.MOTIVATED)
     } else if (method === 'START_ACTIVITY') {
       return new MoodState(180, 30 * 60, Moods.MOTIVATED)

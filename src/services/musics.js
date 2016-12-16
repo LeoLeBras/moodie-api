@@ -69,6 +69,6 @@ export default {
     }
 
     callback()
-    setInterval(callback, 30 * 1000)
+    setInterval(callback, 5 * 1000)
   },
 }
