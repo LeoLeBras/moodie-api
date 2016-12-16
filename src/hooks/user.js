@@ -42,7 +42,11 @@ module.exports = {
         wasShutDown = true
         lastBrightness = manager.brightness
         manager.setBrightness(0)
-      }, 30 * 1000)
+        manager.removeState('mirror')
+        manager.removeState('musics')
+        manager.removeState('healthkit')
+        manager.removeState('user')
+      }, 10 * 1000)
 
       // Not ignored
       return true
@@ -58,7 +62,7 @@ module.exports = {
       cameBackHome = false
       // return new MoodState(100, 30 * 60, Moods.FOCUSED)
     } else if (method === 'GO_TO_SLEEP') {
-      return new MoodState(250, 60 * 60, Moods.CALM)
+      return new MoodState(350, 60 * 60, Moods.CALM)
     }
     return null
   },

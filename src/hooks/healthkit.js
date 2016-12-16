@@ -17,10 +17,10 @@ module.exports = {
   make: (method: string, payload: Object, manager: Manager) => {
     if (method === 'GET_STEP_COUNT') {
       if (payload.steps.level >= 4) {
-        return new MoodState(150, 30 * 60, Moods.CALM)
+        return new MoodState(80, 30 * 60, Moods.CALM)
       }
     } else if (method === 'DO_ACTIVITY') {
-      return new MoodState(160, 1 * 60, Moods.MOTIVATED)
+      return new MoodState(300, 1 * 60, Moods.MOTIVATED)
     } else if (method === 'START_ACTIVITY') {
       return new MoodState(180, 30 * 60, Moods.MOTIVATED)
     } else if (method === 'STOP_ACTIVITY') {

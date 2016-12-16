@@ -97,7 +97,7 @@ export default class Manager {
             this.addState(name, moodState)
             const color = moodState.getMood().getColor()
             this.send(color, this.brightness)
-          } else {
+          } else if (method !== 'I_AM_ALIVE') {
             this.logger.warn(`Made packet ${packet.type}, but nothing returned`)
           }
         }

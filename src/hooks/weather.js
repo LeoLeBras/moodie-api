@@ -10,9 +10,9 @@ module.exports = {
   },
   make: (method: string) => {
     if (method === 'RAIN') {
-      return new MoodState(50, 15 * 60, Moods.SAD)
+      return new MoodState(120, 15 * 60, Moods.SAD)
     } else if (method === 'STORM') {
-      return new MoodState(50, 15 * 60, Moods.CALM)
+      return new MoodState(130, 15 * 60, Moods.CALM)
     }
     return null
   },
