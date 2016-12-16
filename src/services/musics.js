@@ -30,6 +30,7 @@ export default {
 
         const songName = lastTrack.name
         const artist = lastTrack.artist['#text']
+        const album = lastTrack.album['#text']
 
         await spotifyApi.clientCredentialsGrant()
           .then(data => spotifyApi.setAccessToken(data.body.access_token), err => logger.error('Cannot get token', err))
@@ -42,10 +43,11 @@ export default {
           return
         }
 
-        const slugify = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '')
+        const slugify = text => text.toLowerCase().replace(/ \(.+\)$/, '').replace(/[^a-z0-9]+/g, '')
 
-        if (slugify(result.album.name) !== slugify(lastTrack.album['#text'])) {
+        if (album && slugify(result.album.name) !== slugify(album)) {
           logger.warn(`Different albums founds: "${result.album.name}" ≠ "${lastTrack.album['#text']}"`)
+          logger.warn(`Slugs were: "${slugify(result.album.name)}" ≠ "${slugify(lastTrack.album['#text'])}"`)
           return
         }
 
@@ -67,6 +69,6 @@ export default {
     }
 
     callback()
-    setInterval(callback, 60 * 1000)
+    setInterval(callback, 30 * 1000)
   },
 }

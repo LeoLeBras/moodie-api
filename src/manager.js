@@ -40,8 +40,8 @@ export default class Manager {
     this.states = new Map()
     this.logger = new Logger('manager')
 
-    this.brightness = brightness || 100
-    this.intensity = intensity || 100
+    this.brightness = typeof brightness === 'number' ? brightness : 100
+    this.intensity = typeof intensity === 'number' ? intensity : 100
     this.currentColor = [255, 255, 255]
     this.currentBrightness = this.brightness
 
@@ -77,6 +77,10 @@ export default class Manager {
   }
 
   receive(dispatcher: Function, packet: Action) {
+    if (packet.forward) {
+      this.connections.forEach(cb => cb(packet.forward))
+      return
+    }
     const type = packet.type
     const payload = packet.payload
     const name = type.split('/')[0].replace('@@', '')
@@ -100,7 +104,11 @@ export default class Manager {
         if (hook.respond && dispatcher) {
           const response = hook.respond(method, payload, this)
           if (response) {
-            dispatcher(response)
+            if (Array.isArray(response)) {
+              response.forEach(x => dispatcher(x))
+            } else {
+              dispatcher(response)
+            }
           }
         }
       } else if (action === false) {

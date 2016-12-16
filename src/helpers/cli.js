@@ -132,6 +132,13 @@ export default function (manager: Manager, config: Object) {
       return
     }
 
+    // Minimum light
+    if (args[0] === 'on') {
+      cliLogger.info('Turning on...')
+      manager.setBrightness(50)
+      return
+    }
+
     // Maximum light
     if (args[0] === 'max') {
       cliLogger.info('Maximum light...')
@@ -147,7 +154,17 @@ export default function (manager: Manager, config: Object) {
       const seconds = args.length >= 2 ? parseInt(args[1]) : 30
       const rand = () => Math.floor(Math.random() * 255)
       const rgb = [rand(), rand(), rand()]
-      manager.addState('override', new MoodState(1000, seconds, new MoodColor('rand', rgb)))
+      manager.addState('override', new MoodState(1000, seconds, new MoodColor('joy', rgb)))
+      return
+    }
+
+    // Come home
+    if (args[0] === 'home') {
+      manager.connections.forEach(cb => cb({
+        type: '@@home/COME_BACK_HOME',
+        payload: {},
+      }))
+      cliLogger.info('Sent COME_BACK_HOME')
       return
     }
 

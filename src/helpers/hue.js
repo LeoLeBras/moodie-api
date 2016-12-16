@@ -30,14 +30,22 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
     const bridges = await new Promise((resolve) => {
       // Get via public url
       hue.nupnpSearch().then((data) => {
-        logger.info('Resolved via public url')
-        resolve(data)
+        if (data.length) {
+          logger.info('Resolved via public url', data.length)
+          resolve(data)
+        } else {
+          logger.warn('Cannot resovle via public url')
+        }
       })
 
       // Get via pinging network
       hue.upnpSearch().then((data) => {
-        logger.info('Resolved via pinging network')
-        resolve(data)
+        if (data.length) {
+          logger.info('Resolved via pinging network', data.length)
+          resolve(data)
+        } else {
+          logger.warn('Cannot resolve via pinging network')
+        }
       })
     })
 
@@ -51,6 +59,8 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
       // Make API and light state
       const api = new HueApi(bridge.ipaddress, options.username)
       const state = lightState.create()
+
+      api.searchForNewLights()
 
       // Make an array with lights
       let bridgeLights
@@ -130,11 +140,9 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
                 logger.warn(`Cannot change light state for #${id}:`, result)
               }
             } catch (e) {
-              // Remove light on error
-              // const index = lights.indexOf(id)
-              // if (index !== -1) lights = lights.splice(index, 1)
-              lights[index] = 0
-              logger.warn(`Removed light #${id}, due to ${e.message}`)
+              // lights[index] = 0
+              // logger.warn(`Removed light #${id}, due to ${e.message}`)
+              logger.warn(`Error with light {id: ${id}, index: ${index}}: ${e.message}`)
             }
           })
 
@@ -148,7 +156,7 @@ export default async (addHandler: Function, options: Options): Promise<void> => 
         // Return true while there are lights
         return lights.length > 0
       })
-    } else if (options.debug) {
+    } else {
       logger.error('No bridges found!')
     }
   } catch (error) {

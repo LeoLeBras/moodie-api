@@ -22,11 +22,16 @@ module.exports = {
         logger.info('User came back home!')
         wasShutDown = false
         cameBackHome = true
-        pendingPacket = {
+        pendingPacket = [{
           type: '@@home/COME_BACK_HOME',
           payload: {},
-        }
-        manager.setBrightness(lastBrightness)
+        }, {
+          type: '@@hue/GET_INITIAL_STATE',
+          payload: {
+            isOn: true,
+          },
+        }]
+        manager.setBrightness(lastBrightness || 50)
       }
 
       // Wait for 1m
@@ -37,19 +42,23 @@ module.exports = {
         wasShutDown = true
         lastBrightness = manager.brightness
         manager.setBrightness(0)
-      }, 60 * 1000)
+      }, 30 * 1000)
 
       // Not ignored
+      return true
+    } else if (method === 'GO_TO_SLEEP') {
       return true
     }
 
     // Invalid
     return null
   },
-  make: () => {
+  make: (method: string) => {
     if (cameBackHome) {
       cameBackHome = false
-      return new MoodState(100, 30 * 60, Moods.FOCUSED)
+      // return new MoodState(100, 30 * 60, Moods.FOCUSED)
+    } else if (method === 'GO_TO_SLEEP') {
+      return new MoodState(250, 60 * 60, Moods.CALM)
     }
     return null
   },

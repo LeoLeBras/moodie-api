@@ -9,9 +9,9 @@ module.exports = {
   },
   make: (method: string, payload: Object) => {
     if (method === 'TRACK_ANALYSIS') {
-      if (payload.energy > 0.7) {
+      if (payload.energy > 0.65) {
         return new MoodState(70, 5 * 60, Moods.MOTIVATED)
-      } else if (payload.valence > 0.7) {
+      } else if (payload.valence > 0.65) {
         return new MoodState(70, 5 * 60, Moods.HAPPY)
       } else if (payload.valence < 0.3) {
         return new MoodState(70, 5 * 60, Moods.SAD)

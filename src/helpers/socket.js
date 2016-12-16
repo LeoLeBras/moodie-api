@@ -6,6 +6,7 @@ import colors from 'colors/safe'
 export type Action = {
   type: string,
   payload: Object,
+  forward: ?Object,
 }
 
 export type Options = {
