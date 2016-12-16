@@ -11,7 +11,7 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
   console.warn('Connection lost! Reloading in 3 seconds')
   setTimeout(() => {
-    location.reload(true)
+    location.reload()
   }, 3000)
 })
 
@@ -72,4 +72,11 @@ actions.set('rain', () => ({
 actions.set('storm', () => ({
   type: '@@weather/STORM',
   payload: { conditions: 200 },
+}))
+
+actions.set('home', () => ({
+  forward: {
+    type: '@@home/COME_BACK_HOME',
+    payload: {},
+  },
 }))

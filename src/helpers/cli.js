@@ -95,6 +95,13 @@ export default function (manager: Manager, config: Object) {
       return
     }
 
+    // Reset
+    if (['reset', 'r'].includes(args[0])) {
+      cliLogger.info('Removed')
+      manager.removeState(args.length > 1 ? args[1] : null)
+      return
+    }
+
     // Current color
     if (['current', 'c'].includes(args[0])) {
       const color = manager.currentColor
